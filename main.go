@@ -1,10 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
-
 	"github.com/asaskevich/govalidator"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
@@ -23,8 +23,7 @@ const (
 	CEG311 = "Civil Engineering Technology"
 )
 
-type Attendance struct {
-	Course string `valid:"alpha,required"`
+type Record struct {
 	Name string `valid:"alpha,required"`
 	Matric string `valid:"alpha,required"`
 }
@@ -36,25 +35,41 @@ func renderAttendanceForm(w http.ResponseWriter, r *http.Request) {
 
 func submitAttendance(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	record := new(Attendance)
+	record := new(Record)
 	decoder := schema.NewDecoder()
 	decodeErr := decoder.Decode(record, r.PostForm)
 
 	if decodeErr != nil {
-		log.Printf("error mapping form data to struct: ", decodeErr)
+		log.Printf("error mapping form data to struct: %v", decodeErr)
 	}	
 
 	valid, validationErrorMessage := validateInput(w, r, record)
-}
-
-func validateInput(w http.ResponseWriter, r *http.Request, record *Attendance) (bool, string) {
-	valid, validationError := govalidator.ValidateStruct(Attendance)
 
 	if !valid {
-		courseError := govalidator.ErrorByField(validationError, "Course")
+		fmt.Fprint(w, validationErrorMessage)
+		return
+	}
+
+	fmt.Fprintf(w, "Record submitted successfully");
+}
+
+func validateInput(w http.ResponseWriter, r *http.Request, record *Record) (bool, string) {
+	valid, validationError := govalidator.ValidateStruct(record)
+
+	if !valid {
 		nameError := govalidator.ErrorByField(validationError, "Name")
 		matricError := govalidator.ErrorByField(validationError, "Matric")
+
+		if nameError != "" {
+			return valid, "Please fill in a valid name"
+		}
+
+		if matricError != "" {
+			return valid, "Please fill in a valid matric number"
+		}
 	}
+
+
 	return valid, "Validation Error"
 }
 
