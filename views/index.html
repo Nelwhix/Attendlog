@@ -5,7 +5,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mech Attendance</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/resources/css/app.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
 </head>
 <body>
     <h2 style="text-align: center">Mech Attendance</h2>
@@ -14,19 +17,19 @@
         <form action="/" class="form" method="post">
             <div class="form-div">
                 <label for="course">Course</label>
-                <select name="course" id="course">
+                <select name="Course" id="course">
                     <option value="MEG315">Applied Thermodynamics</option>
                     <option value="MEG313">Fluid Dynamics</option>
                     <option value="MEG314">Numerical Methods</option>
                 </select>
             </div>
             <div class="form-div">
-                <label for="">Name</label>
-                <input type="text">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="Name">
             </div>
             <div class="form-div">
-                <label for="">Matric Number</label>
-                <input type="text">
+                <label for="matric">Matric Number</label>
+                <input type="text" id="matric" name="Matric">
             </div>
             <button type="submit">Submit</button>
         </form>
