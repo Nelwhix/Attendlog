@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/Nelwhix/mech-attendance/Controllers"
 )
 
 const (
@@ -15,8 +16,9 @@ const (
 
 func main() {
 	router := mux.NewRouter()
-	router.HandleFunc("/", Create).Methods("GET")
-	router.HandleFunc("/", Store).Methods("POST")
+	router.HandleFunc("/", Controllers.Create).Methods("GET")
+	router.HandleFunc("/admin", Controllers.Admin_Create).Methods("GET")
+	router.HandleFunc("/", Controllers.Store).Methods("POST")
 	router.PathPrefix("/").Handler(http.StripPrefix("/resources", http.FileServer(http.Dir("resources/"))))
 
 	handlers.CompressHandler(router)

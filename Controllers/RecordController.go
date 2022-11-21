@@ -1,4 +1,4 @@
-package main
+package Controllers
 
 import (
 	"net/http"
@@ -11,13 +11,8 @@ import (
 	"log"
 )
 
-type Attendance struct {
-	gorm.Model
-	Name string
-	CourseCode string
-}
-
 type Record struct {
+	gorm.Model
 	Course string
 	Name string `valid:"required"`
 	Matric string `valid:"numeric,required"`
@@ -56,7 +51,7 @@ func Store(w http.ResponseWriter, r *http.Request) {
 		panic("failed to connect database")
 	}
 
-	db.AutoMigrate(&Attendance{})
+	db.AutoMigrate(&Record{})
 	db.Create(&record)
 	fmt.Fprintf(w, "Record submitted successfully");
 }
