@@ -18,7 +18,7 @@ type Record struct {
 	Matric string `valid:"numeric,required"`
 }
 
-func Create(w http.ResponseWriter, r *http.Request) {
+func RenderAttendanceForm(w http.ResponseWriter, r *http.Request) {
 	parsedTemplate, _ := template.ParseFiles("views/index.html")
 	err := parsedTemplate.Execute(w, nil)
 
@@ -28,7 +28,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func Store(w http.ResponseWriter, r *http.Request) {
+func SubmitAttendance(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	record := new(Record)
 	decoder := schema.NewDecoder()
