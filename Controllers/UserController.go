@@ -83,7 +83,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if (user.Username == UserName && user.Password == Password) {
-		r
+		
 	} else {
 		fmt.Fprintf(w, "Bad credentials")
 	}

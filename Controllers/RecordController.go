@@ -18,6 +18,7 @@ type Record struct {
 	Matric string `valid:"numeric,required"`
 }
 
+
 func RenderAttendanceForm(w http.ResponseWriter, r *http.Request) {
 	parsedTemplate, _ := template.ParseFiles("views/index.html")
 	err := parsedTemplate.Execute(w, nil)
