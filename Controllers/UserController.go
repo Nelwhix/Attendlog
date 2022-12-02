@@ -5,8 +5,10 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+
 	"github.com/asaskevich/govalidator"
 	"github.com/gorilla/schema"
+	"github.com/gorilla/securecookie"
 )
 
 const (
@@ -17,6 +19,37 @@ const (
 type User struct {
 	Username string `valid:"alpha,required"`
 	Password string `valid:"alpha,required"`
+}
+
+var cookieHandler = securecookie.New(
+	securecookie.GenerateRandomKey(64),
+	securecookie.GenerateRandomKey(32),
+)
+
+func setSession(userName string, response http.ResponseWriter) {
+	value := map[string]string{
+		"username": userName,
+	}
+	encoded, err := cookieHandler.Encode("session", value)
+
+	if err == nil {
+		cookie := &http.Cookie{
+			Name: "session",
+			Value: encoded,
+			Path: "/",
+		}
+		http.SetCookie(response, cookie)
+	}
+}
+
+func clearSession(response http.ResponseWriter) {
+	cookie := &http.Cookie{
+		Name: "session",
+		Value: "",
+		Path: "/",
+		MaxAge: -1,
+	}
+	http.SetCookie(response, cookie)
 }
 
 func RenderLogin(w http.ResponseWriter, r *http.Request) {
@@ -81,10 +114,18 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, validationErr)
 		return
 	}
-
+	target := "/admin"
 	if (user.Username == UserName && user.Password == Password) {
-		
+		setSession(user.Username, w)
+		target = "/dashboard"
 	} else {
 		fmt.Fprintf(w, "Bad credentials")
 	}
+
+	http.Redirect(w, r, target, http.StatusFound)
+}
+
+func Logout(w http.ResponseWriter, r *http.Request) {
+	clearSession(w)
+	http.Redirect(w, r, "/admin", http.StatusFound)
 }
