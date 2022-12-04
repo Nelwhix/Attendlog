@@ -21,6 +21,10 @@ type User struct {
 	Password string `valid:"alpha,required"`
 }
 
+type Course struct {
+	
+}
+
 var cookieHandler = securecookie.New(
 	securecookie.GenerateRandomKey(64),
 	securecookie.GenerateRandomKey(32),
@@ -53,7 +57,7 @@ func clearSession(response http.ResponseWriter) {
 }
 
 func RenderLogin(w http.ResponseWriter, r *http.Request) {
-	parsedTemplate, _ := template.ParseFiles("../views/login.html")
+	parsedTemplate, _ := template.ParseFiles("views/login.html")
 	err := parsedTemplate.Execute(w, nil)
 
 	if err != nil {
@@ -63,8 +67,12 @@ func RenderLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func RenderDashboard(w http.ResponseWriter, r *http.Request) {
-	parsedTemplate, _ := template.ParseFiles("../views/dashboard.html")
-	err := parsedTemplate.Execute(w, nil)
+	parsedTemplate, parseErr := template.ParseFiles("views/dashboard.html")
+
+	if parseErr != nil {
+		log.Printf("Error parsing html: %v", parseErr)
+	}
+	err := parsedTemplate.Execute(w, )
 
 	if err != nil {
 		log.Printf("Error occured while executing the template or writing its output : %v", err)
@@ -120,6 +128,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		target = "/dashboard"
 	} else {
 		fmt.Fprintf(w, "Bad credentials")
+		return
 	}
 
 	http.Redirect(w, r, target, http.StatusFound)
