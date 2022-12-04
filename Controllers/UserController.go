@@ -21,8 +21,13 @@ type User struct {
 	Password string `valid:"alpha,required"`
 }
 
+type Courses struct {
+	Courses []Course
+}
+
 type Course struct {
-	
+	Name string
+	Code string
 }
 
 var cookieHandler = securecookie.New(
@@ -67,12 +72,19 @@ func RenderLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func RenderDashboard(w http.ResponseWriter, r *http.Request) {
-	parsedTemplate, parseErr := template.ParseFiles("views/dashboard.html")
+	data := Courses{
+		Courses: []Course{
+			{Name: "Applied Thermodynamics", Code: "MEG315"},
+			{Name: "Fluid Dynamics", Code: "MEG313"},
+			{Name:"Multivariable Calculus", Code: "GEG311"},
+		},
+	}
 
+	parsedTemplate, parseErr := template.ParseFiles("views/dashboard.html")
 	if parseErr != nil {
 		log.Printf("Error parsing html: %v", parseErr)
 	}
-	err := parsedTemplate.Execute(w, )
+	err := parsedTemplate.Execute(w, data)
 
 	if err != nil {
 		log.Printf("Error occured while executing the template or writing its output : %v", err)
