@@ -1,14 +1,15 @@
 package Controllers
 
 import (
-	"net/http"
+	"fmt"
 	"html/template"
+	"log"
+	"net/http"
+
 	"github.com/asaskevich/govalidator"
 	"github.com/gorilla/schema"
-	"gorm.io/gorm"
 	"gorm.io/driver/sqlite"
-	"fmt"
-	"log"
+	"gorm.io/gorm"
 )
 
 type Record struct {
@@ -45,7 +46,6 @@ func SubmitAttendance(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, validationErrorMessage)
 		return
 	}
-
 	db, err := gorm.Open(sqlite.Open("app.db"), &gorm.Config{})
 
 	if err != nil {
