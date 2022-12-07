@@ -27,6 +27,24 @@ type Record struct {
 	Matric string `valid:"numeric,required"`
 }
 
+func authMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		session, _ := Controllers.Store.Get(r, "session-name")
+		var authenticated interface{} = session.Values["authenticated"]
+
+		if authenticated != nil {
+			isAuthenticated := session.Values["authenticated"].(bool)
+			if !isAuthenticated {
+				http.Redirect(w, r, "/admin", http.StatusForbidden)
+				return
+			}
+			next.ServeHTTP(w, r)
+		} else {
+			http.Redirect(w, r, "/admin", http.StatusForbidden)
+			return
+		}
+	})
+}
 
 func main() {
 	Enverr := godotenv.Load()
@@ -40,6 +58,7 @@ func main() {
 	router.HandleFunc("/dashboard", Controllers.RenderDashboard).Methods("GET")
 	router.HandleFunc("/admin", Controllers.Login).Methods("POST")
 	router.HandleFunc("/", Controllers.SubmitAttendance).Methods("POST")
+	router.HandleFunc("/records/{course}", Controllers.GetRecords).Methods("GET")
 	router.PathPrefix("/").Handler(http.StripPrefix("/resources", http.FileServer(http.Dir("resources/"))))
 
 	handlers.CompressHandler(router)

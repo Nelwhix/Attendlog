@@ -8,7 +8,7 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/gorilla/schema"
-	"github.com/gorilla/securecookie"
+	"github.com/gorilla/sessions"
 )
 
 const (
@@ -30,35 +30,10 @@ type Course struct {
 	Code string
 }
 
-var cookieHandler = securecookie.New(
-	securecookie.GenerateRandomKey(64),
-	securecookie.GenerateRandomKey(32),
-)
+var Store *sessions.CookieStore
 
-func setSession(userName string, response http.ResponseWriter) {
-	value := map[string]string{
-		"username": userName,
-	}
-	encoded, err := cookieHandler.Encode("session", value)
-
-	if err == nil {
-		cookie := &http.Cookie{
-			Name: "session",
-			Value: encoded,
-			Path: "/",
-		}
-		http.SetCookie(response, cookie)
-	}
-}
-
-func clearSession(response http.ResponseWriter) {
-	cookie := &http.Cookie{
-		Name: "session",
-		Value: "",
-		Path: "/",
-		MaxAge: -1,
-	}
-	http.SetCookie(response, cookie)
+func init() {
+	Store = sessions.NewCookieStore([]byte("secret-key"))
 }
 
 func RenderLogin(w http.ResponseWriter, r *http.Request) {
@@ -136,7 +111,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 	target := "/admin"
 	if (user.Username == UserName && user.Password == Password) {
-		setSession(user.Username, w)
+		session, _ := Store.Get(r, "session-name")
+		session.Values["authenticated"] = true
+		session.Save(r, w)
 		target = "/dashboard"
 	} else {
 		fmt.Fprintf(w, "Bad credentials")
@@ -147,6 +124,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) {
-	clearSession(w)
+	
 	http.Redirect(w, r, "/admin", http.StatusFound)
 }

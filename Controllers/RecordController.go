@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -75,4 +76,16 @@ func validateInput(w http.ResponseWriter, r *http.Request, record *Record) (bool
 
 
 	return valid, "Validation Error"
+}
+
+func GetRecords(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	db, err := gorm.Open(sqlite.Open("app.db"), &gorm.Config{})
+
+	if err != nil {
+		panic("failed to connect database")
+	}
+
+	var records []Record
+	db.Where("Course <> ?", vars["course"]).Find(&records)
 }
