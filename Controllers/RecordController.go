@@ -20,6 +20,9 @@ type Record struct {
 	Matric string `valid:"numeric,required"`
 }
 
+type Records struct {
+	Records []Record
+}
 
 func RenderAttendanceForm(w http.ResponseWriter, r *http.Request) {
 	parsedTemplate, _ := template.ParseFiles("views/index.html")
@@ -80,12 +83,26 @@ func validateInput(w http.ResponseWriter, r *http.Request, record *Record) (bool
 
 func GetRecords(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+
 	db, err := gorm.Open(sqlite.Open("app.db"), &gorm.Config{})
 
 	if err != nil {
 		panic("failed to connect database")
 	}
 
-	var records []Record
-	db.Where("Course <> ?", vars["course"]).Find(&records)
+	var data Records
+	db.Where("Course <> ?", vars["course"]).Find(&data)
+
+	parsedTemplates, parseErr := template.ParseFiles("views/records.html")
+
+	if parseErr != nil {
+		log.Printf("Error parsing html: %v", parseErr)
+	}
+
+	err = parsedTemplates.Execute(w, data)
+
+	if err != nil {
+		log.Printf("Error occured while executing the template or writing its output : %v", err)
+		return
+	}
 }

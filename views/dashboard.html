@@ -9,7 +9,7 @@
     <h1>Welcome to your Dashboard</h1>
     <ul>
         {{range .Courses}}
-        <li><a href="">{{.Name}}</a></li>
+        <li><a href="/records/{{.Code}}">{{.Name}}</a></li>
         {{end}}
     </ul>
 
