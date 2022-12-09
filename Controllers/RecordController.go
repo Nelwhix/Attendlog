@@ -90,8 +90,12 @@ func GetRecords(w http.ResponseWriter, r *http.Request) {
 		panic("failed to connect database")
 	}
 
-	var data Records
-	db.Where("Course <> ?", vars["course"]).Find(&data)
+	var records []Record
+	db.Where("Course <> ?", vars["course"]).Find(&records)
+
+	data := Records{
+		Records: records,
+	}
 
 	parsedTemplates, parseErr := template.ParseFiles("views/records.html")
 
