@@ -14,14 +14,11 @@
     <h2 style="text-align: center">Mech Attendance</h2>
     <p >Fill in your name and matric number</p>
     <main>
-        <form action="/" class="form" method="post">
+        <form action="/attendance/{{.Course}}" class="form" method="post">
             <div class="form-div">
                 <label for="course">Course</label>
-                <select name="Course" id="course">
-                    <option value="MEG315">Applied Thermodynamics</option>
-                    <option value="MEG313">Fluid Dynamics</option>
-                    <option value="MEG314">Numerical Methods</option>
-                </select>
+               <p>{{.Course}}</p>
+               <input type="text" name="Course" value="{{.Course}}" hidden>
             </div>
             <div class="form-div">
                 <label for="name">Name</label>

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
@@ -34,11 +35,14 @@ func main() {
 	}
 
 	router := mux.NewRouter()
-	router.HandleFunc("/", Controllers.RenderAttendanceForm).Methods("GET")
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "Welcome to MECH25 Attendance Web App by Isioma Nelson")
+	})
+	router.HandleFunc("/attendance/{course}", Controllers.RenderAttendanceForm).Methods("GET")
 	router.HandleFunc("/admin", Controllers.RenderLogin).Methods("GET")
 	router.HandleFunc("/dashboard", Controllers.RenderDashboard).Methods("GET")
 	router.HandleFunc("/admin", Controllers.Login).Methods("POST")
-	router.HandleFunc("/", Controllers.SubmitAttendance).Methods("POST")
+	router.HandleFunc("/attendance/{course}", Controllers.SubmitAttendance).Methods("POST")
 	router.HandleFunc("/records/{course}", Controllers.GetRecords).Methods("GET")
 	router.PathPrefix("/").Handler(http.StripPrefix("/resources", http.FileServer(http.Dir("resources/"))))
 

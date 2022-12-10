@@ -7,19 +7,26 @@
 </head>
 <body>
     <main>
-        <table>
-            {{range .Records}}
-            <tr>
-                <td></td>
-                <td>{{.Name}}</td>
-                <td>{{.Matric}}</td>
-                <td>{{.Course}}</td>
-                <td>
-                    <input type="checkbox">
-                </td>
-            </tr>
-            {{end}}
-        </table>
+        <form action="#">
+            <table>
+                <thead>
+                    <td>Name</td>
+                    <td>Matric. Number</td>
+                    <td>Course</td>
+                    <td>Delete/Don't Delete</td>
+                </thead>
+                {{range .Records}}
+                <tr>
+                    <td>{{.Name}}</td>
+                    <td>{{.Matric}}</td>
+                    <td>{{.Course}}</td>
+                    <td>
+                        <input type="checkbox">
+                    </td>
+                </tr>
+                {{end}}
+            </table>
+        </form> 
     </main>
 </body>
 </html>

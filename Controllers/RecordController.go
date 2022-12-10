@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/gorilla/mux"
@@ -25,8 +26,14 @@ type Records struct {
 }
 
 func RenderAttendanceForm(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	data := map[string]string{
+		"Course": vars["course"],
+	}
+
 	parsedTemplate, _ := template.ParseFiles("views/index.html")
-	err := parsedTemplate.Execute(w, nil)
+	err := parsedTemplate.Execute(w, data)
 
 	if err != nil {
 		log.Printf("Error occured while executing the template or writing its output : %v", err)
@@ -56,6 +63,17 @@ func SubmitAttendance(w http.ResponseWriter, r *http.Request) {
 		panic("failed to connect database")
 	}
 
+	var result Record
+
+	beforeTime := time.Now().Add(-time.Hour * 6)
+	db.Where("Course == ? AND Name == ? AND Matric == ? AND created_at BETWEEN ? AND ?",
+	 record.Course, record.Name, record.Matric, beforeTime, time.Now()).First(&result)
+
+	 if result.Name != "" {
+		fmt.Fprint(w, "Duplicate entries are not allowed")
+		return
+	 }
+
 	db.AutoMigrate(&Record{})
 	db.Create(&record)
 	fmt.Fprintf(w, "Record submitted successfully");
@@ -63,6 +81,10 @@ func SubmitAttendance(w http.ResponseWriter, r *http.Request) {
 
 func validateInput(w http.ResponseWriter, r *http.Request, record *Record) (bool, string) {
 	valid, validationError := govalidator.ValidateStruct(record)
+
+	if len(record.Matric) != 9 {
+		valid = false
+	}
 
 	if !valid {
 		nameError := govalidator.ErrorByField(validationError, "Name")
@@ -75,6 +97,8 @@ func validateInput(w http.ResponseWriter, r *http.Request, record *Record) (bool
 		if matricError != "" {
 			return valid, "Please fill in a valid matric number"
 		}
+
+		return valid, "Your Matric number must be 9 digits long"
 	}
 
 
@@ -91,7 +115,7 @@ func GetRecords(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var records []Record
-	db.Where("Course == ? AND created_at BETWEEN ? AND ?", vars["course"], yesterday, today).Find(&records)
+	db.Where("Course == ?", vars["course"]).Find(&records)
 
 	data := Records{
 		Records: records,
