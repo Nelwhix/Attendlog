@@ -91,7 +91,7 @@ func GetRecords(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var records []Record
-	db.Where("Course <> ?", vars["course"]).Find(&records)
+	db.Where("Course == ? AND created_at BETWEEN ? AND ?", vars["course"], yesterday, today).Find(&records)
 
 	data := Records{
 		Records: records,
