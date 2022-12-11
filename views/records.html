@@ -8,21 +8,18 @@
 <body>
     <main>
         <form action="#">
+            <button>Export as CSV</button>
             <table>
                 <thead>
                     <td>Name</td>
                     <td>Matric. Number</td>
                     <td>Course</td>
-                    <td>Delete/Don't Delete</td>
                 </thead>
                 {{range .Records}}
                 <tr>
                     <td>{{.Name}}</td>
                     <td>{{.Matric}}</td>
                     <td>{{.Course}}</td>
-                    <td>
-                        <input type="checkbox">
-                    </td>
                 </tr>
                 {{end}}
             </table>
