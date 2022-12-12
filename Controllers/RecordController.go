@@ -1,10 +1,13 @@
 package Controllers
 
 import (
+	"encoding/base64"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/asaskevich/govalidator"
@@ -19,6 +22,7 @@ type Record struct {
 	Course string
 	Name string `valid:"required"`
 	Matric string `valid:"numeric,required"`
+	Signature string
 }
 
 type Records struct {
@@ -57,6 +61,19 @@ func SubmitAttendance(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, validationErrorMessage)
 		return
 	}
+
+	dataURI := record.Signature
+	encodedImg := strings.Split(dataURI, ",")[1]
+	decodedImg, _ := base64.StdEncoding.DecodeString(encodedImg)
+	out, err := os.Create("./uploads/" + record.Matric + ".png")
+
+	if err != nil {
+		log.Printf("error creating a file for writing %v", err)
+		return
+	}
+	defer out.Close()
+	os.WriteFile(out.Name(), decodedImg, 0644)
+
 	db, err := gorm.Open(sqlite.Open("app.db"), &gorm.Config{})
 
 	if err != nil {

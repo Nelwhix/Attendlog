@@ -15,7 +15,7 @@
     <h2 style="text-align: center">Mech Attendance</h2>
     <p >Fill in your name and matric number</p>
     <main>
-        <form action="/attendance/{{.Course}}" class="form" method="post">
+        <form action="/attendance/{{.Course}}" class="form" method="post" enctype="multipart/form-data">
             <div class="form-div">
                 <label for="course">Course</label>
                <p>{{.Course}}</p>
@@ -32,7 +32,9 @@
             <div class="form-div">
                 <label for="signature">Signature</label>
                 <canvas style="border:1px solid black"></canvas>
+                <input type="text" id="file" name="signature" hidden>
                 <button id="canvasClear">Clear canvas</button>
+                <button id="done">Done</button>
             </div>
             <button type="submit">Submit</button>
         </form>
@@ -41,12 +43,18 @@
     <script>
         const canvas = document.querySelector("canvas")
         const signaturePad = new SignaturePad(canvas)
-
+        const doneBtn = document.querySelector("#done")
         const canvasClear = document.querySelector("#canvasClear")
+        const fileInput = document.querySelector("#file")
 
         canvasClear.addEventListener("click", e => {
             e.preventDefault()
             signaturePad.clear()
+        })
+
+        doneBtn.addEventListener("click", e => {
+            e.preventDefault()
+            fileInput.value = signaturePad.toDataURL()
         })
     </script>
 </body>

@@ -7,7 +7,9 @@
     To contribute, you need go 1.19.3 and a gcc compiler installed on your machine.
 
 ### TODO
-- Finish working on the dashboard
-- Allow updates
-- add tests
-- create a makeshift templating engine to avoid repeating html
+- Admin can update the table
+- Admin can export records as csv
+- E-signatures
+- Clean design
+- Full Test suite
+- Deployment
