@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -67,13 +68,13 @@ func SubmitAttendance(w http.ResponseWriter, r *http.Request) {
 	encodedImg := strings.Split(dataURI, ",")[1]
 	decodedImg, _ := base64.StdEncoding.DecodeString(encodedImg)
 
-	_, err := os.Stat("./uploads/" + record.Matric + ".png")
+	_, err := os.Stat("./resources/uploads/" + record.Matric + ".png")
 
 	if !errors.Is(err, os.ErrNotExist) {
-		os.Remove("./uploads/" + record.Matric + ".png")
+		os.Remove("./resources/uploads/" + record.Matric + ".png")
 	}
 
-	out, err := os.Create("./uploads/" + record.Matric + ".png")
+	out, err := os.Create("./resources/uploads/" + record.Matric + ".png")
 
 	if err != nil {
 		log.Printf("error creating a file for writing %v", err)
@@ -82,7 +83,7 @@ func SubmitAttendance(w http.ResponseWriter, r *http.Request) {
 	defer out.Close()
 	os.WriteFile(out.Name(), decodedImg, 0644)
 
-	record.Signature = out.Name()
+	record.Signature = filepath.Base(out.Name())
 	
 
 	db, err := gorm.Open(sqlite.Open("app.db"), &gorm.Config{})
