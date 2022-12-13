@@ -2,6 +2,7 @@ package Controllers
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -65,6 +66,13 @@ func SubmitAttendance(w http.ResponseWriter, r *http.Request) {
 	dataURI := record.Signature
 	encodedImg := strings.Split(dataURI, ",")[1]
 	decodedImg, _ := base64.StdEncoding.DecodeString(encodedImg)
+
+	_, err := os.Stat("./uploads/" + record.Matric + ".png")
+
+	if !errors.Is(err, os.ErrNotExist) {
+		os.Remove("./uploads/" + record.Matric + ".png")
+	}
+
 	out, err := os.Create("./uploads/" + record.Matric + ".png")
 
 	if err != nil {
@@ -73,6 +81,9 @@ func SubmitAttendance(w http.ResponseWriter, r *http.Request) {
 	}
 	defer out.Close()
 	os.WriteFile(out.Name(), decodedImg, 0644)
+
+	record.Signature = out.Name()
+	
 
 	db, err := gorm.Open(sqlite.Open("app.db"), &gorm.Config{})
 
