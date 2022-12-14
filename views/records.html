@@ -30,20 +30,30 @@
             {{end}}
         </table>
 
-        <div>
+        <div id="modal" style="display: none;">
             <h3>Are you sure you want to delete?</h3>
-            <div>
-                <form action="/records/delete" action="delete">
+            <div style="display:flex;justify-content: space-between;">
+                <form id="deleteForm" action="#" action="delete">
                     <button type="submit">Yes</button>
                 </form>
-                <button>No</button>
+                <button onclick="hideModal()">No</button>
             </div>
         </div>
     </main>
 
     <script>
-        function openModal(value) {
-            console.log(value)
+        const modal = document.getElementById("modal");
+        const deleteForm = document.getElementById("deleteForm")
+
+        const openModal = (value) => {
+            const url = "/records/delete/" + value
+            modal.style.display = "block"
+            console.log(url.replace(/\s+/g, ""))
+            deleteForm.action = url.replace(/\s+/g, "")
+        }
+
+        const hideModal = () => {
+            modal.style.display = "none"
         }
     </script>
 </body>

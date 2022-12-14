@@ -171,3 +171,7 @@ func GetRecords(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func DeleteRecord(w http.ResponseWriter, r *http.Request) {
+	
+}

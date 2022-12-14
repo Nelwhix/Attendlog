@@ -12,3 +12,15 @@ body {
 .form-div {
     margin: 20px 0;
 }
+
+#modal {
+    position: absolute;
+    background-color: gray;
+    top: 20%;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+button {
+    cursor: pointer;
+}
