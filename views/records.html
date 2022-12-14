@@ -4,28 +4,47 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Records - Attendance form</title>
+    <link rel="stylesheet" href="/resources/css/app.css">
 </head>
 <body>
     <main>
-        <form action="#">
-            <button>Export as CSV</button>
-            <table>
-                <thead>
-                    <td>Name</td>
-                    <td>Matric. Number</td>
-                    <td>Course</td>
-                    <td>Signature</td>
-                </thead>
-                {{range .Records}}
+        <table>
+            <thead>
                 <tr>
-                    <td>{{.Name}}</td>
-                    <td>{{.Matric}}</td>
-                    <td>{{.Course}}</td>
-                    <td><img src="/resources/uploads/{{.Signature}}" alt=""></td>
+                    <th>Name</th>
+                    <th>Matric. Number</th>
+                    <th>Course</th>
+                    <th>Signature</th>
                 </tr>
-                {{end}}
-            </table>
-        </form> 
+            </thead>
+            {{range .Records}}
+            <tr>
+                <td>{{.Name}}</td>
+                <td>{{.Matric}}</td>
+                <td>{{.Course}}</td>
+                <td><img src="/resources/uploads/{{.Signature}}" alt=""></td>
+                <td>
+                    <button onclick="openModal(`{{.ID}}`)">delete record</button>
+                </td>
+            </tr>
+            {{end}}
+        </table>
+
+        <div>
+            <h3>Are you sure you want to delete?</h3>
+            <div>
+                <form action="/records/delete" action="delete">
+                    <button type="submit">Yes</button>
+                </form>
+                <button>No</button>
+            </div>
+        </div>
     </main>
+
+    <script>
+        function openModal(value) {
+            console.log(value)
+        }
+    </script>
 </body>
 </html>

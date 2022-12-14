@@ -135,6 +135,13 @@ func validateInput(w http.ResponseWriter, r *http.Request, record *Record) (bool
 }
 
 func GetRecords(w http.ResponseWriter, r *http.Request) {
+	isActive := hasActiveSession(r)
+
+	if !isActive {
+		fmt.Fprintln(w, "You are not authorized to view this page")
+		return
+	}
+
 	vars := mux.Vars(r)
 
 	db, err := gorm.Open(sqlite.Open("app.db"), &gorm.Config{})
@@ -144,7 +151,8 @@ func GetRecords(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var records []Record
-	db.Where("Course == ?", vars["course"]).Find(&records)
+	beforeTime := time.Now().Add(-time.Hour * 6)
+	db.Where("Course == ? AND created_at BETWEEN ? AND ?", vars["course"], beforeTime, time.Now()).Find(&records)
 
 	data := Records{
 		Records: records,
