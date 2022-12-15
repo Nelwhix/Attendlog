@@ -44,7 +44,7 @@ func main() {
 	router.HandleFunc("/admin", Controllers.Login).Methods("POST")
 	router.HandleFunc("/attendance/{course}", Controllers.SubmitAttendance).Methods("POST")
 	router.HandleFunc("/records/{course}", Controllers.GetRecords).Methods("GET")
-	router.HandleFunc("/records/delete/{record}", Controllers.DeleteRecord).Methods("DELETE")
+	router.HandleFunc("/records/delete/{record}", Controllers.DeleteRecord).Methods("POST")
 	router.PathPrefix("/").Handler(http.StripPrefix("/resources", http.FileServer(http.Dir("resources/"))))
 
 	handlers.CompressHandler(router)

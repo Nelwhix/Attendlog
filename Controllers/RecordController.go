@@ -98,7 +98,7 @@ func SubmitAttendance(w http.ResponseWriter, r *http.Request) {
 	db.Where("Course == ? AND Name == ? AND Matric == ? AND created_at BETWEEN ? AND ?",
 	 record.Course, record.Name, record.Matric, beforeTime, time.Now()).First(&result)
 
-	 if result.Name != "" {
+	if result.Name != "" {
 		fmt.Fprint(w, "Duplicate entries are not allowed")
 		return
 	 }
@@ -173,5 +173,19 @@ func GetRecords(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteRecord(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	db, err := gorm.Open(sqlite.Open("app.db"), &gorm.Config{})
+
+	if err != nil {
+		panic("failed to connect database")
+	}
+
+	var record Record
+	db.First(&record, vars["record"])
+	course := record.Course
+
+	db.Delete(&Record{}, vars["record"])
 	
+	http.Redirect(w, r, "/records/" + course, 200)
 }
