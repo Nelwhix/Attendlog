@@ -38,13 +38,21 @@ func main() {
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "Welcome to MECH25 Attendance Web App by Isioma Nelson")
 	})
+
+	// Record Controller
 	router.HandleFunc("/attendance/{course}", Controllers.RenderAttendanceForm).Methods("GET")
-	router.HandleFunc("/admin", Controllers.RenderLogin).Methods("GET")
-	router.HandleFunc("/dashboard", Controllers.RenderDashboard).Methods("GET")
-	router.HandleFunc("/admin", Controllers.Login).Methods("POST")
 	router.HandleFunc("/attendance/{course}", Controllers.SubmitAttendance).Methods("POST")
 	router.HandleFunc("/records/{course}", Controllers.GetRecords).Methods("GET")
 	router.HandleFunc("/records/delete/{record}", Controllers.DeleteRecord).Methods("POST")
+
+	// User Controller
+	router.HandleFunc("/admin", Controllers.RenderLogin).Methods("GET")
+	router.HandleFunc("/dashboard", Controllers.RenderDashboard).Methods("GET")
+	router.HandleFunc("/admin", Controllers.Login).Methods("POST")
+	
+	// Course Controller
+	router.HandleFunc("/courses/add", Controllers.RenderCourseForm).Methods("GET")
+	router.HandleFunc("/courses/add", Controllers.AddCourse).Methods("POST")
 	router.PathPrefix("/").Handler(http.StripPrefix("/resources", http.FileServer(http.Dir("resources/"))))
 
 	handlers.CompressHandler(router)

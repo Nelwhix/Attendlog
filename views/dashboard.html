@@ -7,9 +7,13 @@
 </head>
 <body>
     <h1>Welcome to your Dashboard</h1>
+    <a href="/courses/add">Add new Course</a>
     <ul>
         {{range .Courses}}
-        <li><a href="/records/{{.Code}}">{{.Name}}</a></li>
+        <li>
+            <a href="/records/{{.Code}}">{{.Name}}</a>
+            <a href="/records/export/{{.Code}}">Export as CSV</a>
+        </li>
         {{end}}
     </ul>
 

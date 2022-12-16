@@ -13,7 +13,7 @@ import (
 )
 
 func RenderCourseForm(w http.ResponseWriter, r *http.Request) {
-	parsedTemplate, _ := template.ParseFiles("views/subjects.html")
+	parsedTemplate, _ := template.ParseFiles("views/courses.html")
 	err := parsedTemplate.Execute(w, nil)
 
 	if err != nil {
@@ -44,6 +44,10 @@ func AddCourse(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic("failed to connect database")
 	}
+
+	db.AutoMigrate(&Course{})
+	db.Create(&course)
+	fmt.Fprintf(w, "Course added successfully");
 }
 
 func validateCourse(w http.ResponseWriter, r *http.Request, course *Course) (bool, string) {

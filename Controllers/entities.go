@@ -16,7 +16,7 @@ type User struct {
 
 type Record struct {
 	gorm.Model
-	Course string
+	Course string 
 	Name string `valid:"required"`
 	Matric string `valid:"numeric,required"`
 	Signature string

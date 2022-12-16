@@ -9,6 +9,8 @@ import (
 	"github.com/asaskevich/govalidator"
 	"github.com/gorilla/schema"
 	"github.com/gorilla/securecookie"
+	"gorm.io/gorm"
+	"gorm.io/driver/sqlite"
 )
 
 const (
@@ -19,8 +21,6 @@ const (
 type Courses struct {
 	Courses []Course
 }
-
-
 
 var cookieHandler = securecookie.New(
 	securecookie.GenerateRandomKey(64),
@@ -91,19 +91,24 @@ func RenderDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	db, err := gorm.Open(sqlite.Open("app.db"), &gorm.Config{})
+
+	if err != nil {
+		panic("failed to connect database")
+	}
+
+	var courses []Course
+	db.Find(&courses)
+
 	data := Courses{
-		Courses: []Course{
-			{Name: "Applied Thermodynamics", Code: "MEG315"},
-			{Name: "Fluid Dynamics", Code: "MEG313"},
-			{Name:"Multivariable Calculus", Code: "GEG311"},
-		},
+		Courses: courses,
 	}
 
 	parsedTemplate, parseErr := template.ParseFiles("views/dashboard.html")
 	if parseErr != nil {
 		log.Printf("Error parsing html: %v", parseErr)
 	}
-	err := parsedTemplate.Execute(w, data)
+	err = parsedTemplate.Execute(w, data)
 
 	if err != nil {
 		log.Printf("Error occured while executing the template or writing its output : %v", err)
