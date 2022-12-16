@@ -1,20 +1,16 @@
 package Controllers
 
 import (
-	"net/http"
+	"fmt"
 	"html/template"
 	"log"
+	"net/http"
 
-	"gorm.io/gorm"
+	"github.com/asaskevich/govalidator"
 	"github.com/gorilla/schema"
+	"gorm.io/gorm"
+	"gorm.io/driver/sqlite"
 )
-
-type Subject struct {
-	gorm.Model
-	Semester string `valid:"required"`
-	Name string	`valid:"required"`
-	Code string	`valid:"required"`
-}
 
 func RenderCourseForm(w http.ResponseWriter, r *http.Request) {
 	parsedTemplate, _ := template.ParseFiles("views/subjects.html")
@@ -28,6 +24,43 @@ func RenderCourseForm(w http.ResponseWriter, r *http.Request) {
 
 func AddCourse(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	subject := new(Subject)
+	course := new(Course)
+	decoder := schema.NewDecoder()
+	decodeErr := decoder.Decode(course, r.PostForm)
 
+	if decodeErr != nil {
+		log.Printf("error mapping form data to struct: %v", decodeErr)
+	}
+
+	valid, validationErrMsg := validateCourse(w, r, course)
+
+	if !valid {
+		fmt.Fprint(w, validationErrMsg)
+		return
+	}
+
+	db, err := gorm.Open(sqlite.Open("app.db"), &gorm.Config{})
+
+	if err != nil {
+		panic("failed to connect database")
+	}
+}
+
+func validateCourse(w http.ResponseWriter, r *http.Request, course *Course) (bool, string) {
+	valid, validationErr := govalidator.ValidateStruct(course)
+
+	if !valid {
+		nameErr := govalidator.ErrorByField(validationErr, "Name")
+		codeErr := govalidator.ErrorByField(validationErr, "Code")
+
+		if nameErr != "" {
+			return valid, "Please fill in a valid name"
+		}
+
+		if codeErr != "" {
+			return valid, "Please fill in a valid Course Code"
+		}
+	}
+
+	return valid, "Validation error"
 }

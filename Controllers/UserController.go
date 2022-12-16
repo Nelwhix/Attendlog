@@ -16,19 +16,11 @@ const (
 	Password = "admin"
 )
 
-type User struct {
-	Username string `valid:"alpha,required"`
-	Password string `valid:"alpha,required"`
-}
-
 type Courses struct {
 	Courses []Course
 }
 
-type Course struct {
-	Name string
-	Code string
-}
+
 
 var cookieHandler = securecookie.New(
 	securecookie.GenerateRandomKey(64),

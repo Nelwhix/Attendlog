@@ -19,14 +19,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type Record struct {
-	gorm.Model
-	Course string
-	Name string `valid:"required"`
-	Matric string `valid:"numeric,required"`
-	Signature string
-}
-
 type Records struct {
 	Records []Record
 }
