@@ -7,9 +7,7 @@
     To contribute, you need go 1.19.3 and a gcc compiler installed on your machine.
 
 ### TODO
-- Admin can update the table
 - Admin can export records as csv
-- E-signatures
 - Clean design
 - Full Test suite
 - Deployment
