@@ -181,3 +181,28 @@ func DeleteRecord(w http.ResponseWriter, r *http.Request) {
 	
 	http.Redirect(w, r, "/records/" + course, 200)
 }
+
+// func ExportRecords(w http.ResponseWriter, r *http.Request) {
+// 	vars := mux.Vars(r)
+
+// 	var result []Record
+
+// 	db, err := gorm.Open(sqlite.Open("app.db"), &gorm.Config{})
+
+// 	if err != nil {
+// 		panic("failed to connect database")
+// 	}
+
+// 	db.Where("Course == ?", vars["course"]).Find(&result)
+
+// 	f, err := os.Create(vars["course"] + "-records.csv")
+// 	defer f.Close()
+
+// 	if err != nil {
+// 		log.Fatalln("failed to open file", err)
+// 	}
+
+
+// 	// csvWriter := csv.NewWriter(f)
+// 	// err = csvWriter.WriteAll(result)
+// }
