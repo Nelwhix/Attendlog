@@ -15,6 +15,7 @@ import (
 	"github.com/asaskevich/govalidator"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
+	"github.com/joho/sqltocsv"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -182,27 +183,27 @@ func DeleteRecord(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/records/" + course, 200)
 }
 
-// func ExportRecords(w http.ResponseWriter, r *http.Request) {
-// 	vars := mux.Vars(r)
+func ExportRecords(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	
+	db, err := gorm.Open(sqlite.Open("app.db"), &gorm.Config{})
 
-// 	var result []Record
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-// 	db, err := gorm.Open(sqlite.Open("app.db"), &gorm.Config{})
+	rows, err := db.Model(&Record{}).Where("Course == ?", vars["course"]).Rows()
+	
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+	
 
-// 	if err != nil {
-// 		panic("failed to connect database")
-// 	}
+	w.Header().Set("Content-type", "text/csv")
+	w.Header().Set("Content-Disposition", "attachment; filename=\"" + vars["course"] + "-report.csv\"")
 
-// 	db.Where("Course == ?", vars["course"]).Find(&result)
-
-// 	f, err := os.Create(vars["course"] + "-records.csv")
-// 	defer f.Close()
-
-// 	if err != nil {
-// 		log.Fatalln("failed to open file", err)
-// 	}
-
-
-// 	// csvWriter := csv.NewWriter(f)
-// 	// err = csvWriter.WriteAll(result)
-// }
+	sqltocsv.Write(w, rows)
+}

@@ -44,7 +44,7 @@ func main() {
 	router.HandleFunc("/attendance/{course}", Controllers.SubmitAttendance).Methods("POST")
 	router.HandleFunc("/records/{course}", Controllers.GetRecords).Methods("GET")
 	router.HandleFunc("/records/delete/{record}", Controllers.DeleteRecord).Methods("POST")
-	//router.HandleFunc("/records/export/{course}", Controllers.ExportRecords).Methods("GET")
+	router.HandleFunc("/records/export/{course}", Controllers.ExportRecords).Methods("GET")
 
 	// User Controller
 	router.HandleFunc("/admin", Controllers.RenderLogin).Methods("GET")

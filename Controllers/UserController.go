@@ -91,6 +91,7 @@ func RenderDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+
 	db, err := gorm.Open(sqlite.Open("app.db"), &gorm.Config{})
 
 	if err != nil {
