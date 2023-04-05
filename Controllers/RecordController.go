@@ -57,6 +57,7 @@ func SubmitAttendance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// store signature on server
 	dataURI := record.Signature
 	encodedImg := strings.Split(dataURI, ",")[1]
 	decodedImg, _ := base64.StdEncoding.DecodeString(encodedImg)

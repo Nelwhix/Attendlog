@@ -5,26 +5,28 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add new Subject - Mech Attendance</title>
+    <link rel="stylesheet" href="/resources/css/app.css">
 </head>
 <body>
     <main>
-        <form action="/courses/add" method="post">
-            <div>
+        <h1>Add a new Course</h1>
+        <form action="/courses/add" method="post" class="form">
+            <div class="form-div">
                 <label for="semester">Semester</label>
                 <select name="semester">
                     <option value="1st Semester">1st Semester</option>
                     <option value="2nd Semester">2nd Semester</option>
                 </select>
             </div>
-            <div>
-                <label for="name">Course Name</label>
-                <input type="text" name="name">
+            <div class="form-div">
+                <input type="text" name="name" required>
+                <span>Name</span>
             </div>
-            <div>
-                <label for="code">Course code</label>
-                <input type="text" name="code">
+            <div class="form-div">
+                <input type="text" name="code" required>
+                <span>Course Code</span>
             </div>
-            <button type="submit">Add Course</button>
+            <button type="submit" class="button">Add Course</button>
         </form>
     </main>
 </body>

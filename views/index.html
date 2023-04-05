@@ -12,29 +12,32 @@
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 </head>
 <body>
-    <h2 style="text-align: center">Mech Attendance</h2>
+    <h2 style="text-align: center">Mech25 Attendance</h2>
     <p >Fill in your name and matric number</p>
+    <p>Course: {{.Course}}</p>
     <main>
         <form action="/attendance/{{.Course}}" class="form" method="post">
             <div class="form-div">
-                <label for="course">Course</label>
-               <p>{{.Course}}</p>
                <input type="text" name="Course" value="{{.Course}}" hidden>
             </div>
             <div class="form-div">
-                <label for="name">Name</label>
-                <input type="text" id="name" name="Name">
+                <input type="text" id="name" name="Name" required>
+                <span>Name</span>
             </div>
             <div class="form-div">
-                <label for="matric">Matric Number</label>
-                <input type="text" id="matric" name="Matric">
+                <input type="text" id="matric" name="Matric" required>
+                <span>Matric Number</span>
             </div>
             <div class="form-div">
                 <label for="signature">Signature</label>
-                <canvas style="border:1px solid black"></canvas>
+                <div>
+                    <canvas class="canvas"></canvas>
+                </div>
                 <input type="text" id="file" name="signature" hidden>
-                <button id="canvasClear">Clear canvas</button>
-                <button id="done">Done</button>
+                <div style="width:100%;display:flex;justify-content:space-between;margin-top: 5px;">
+                    <button id="canvasClear">Clear canvas</button>
+                    <button id="done">Done</button>
+                </div>
             </div>
             <button type="submit">Submit</button>
         </form>

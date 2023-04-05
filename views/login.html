@@ -5,22 +5,20 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Form application</title>
-    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/resources/css/app.css">
 </head>
 <body>
-    <div class="container">
-        <h1 style="text-align: center;margin-bottom:1em;">Sign In</h1>
-        <form action="/admin" method="POST">
-            <div class="input-container">
-                <label for="uid">Username</label>
-                <input name="Username" class="form-input" type="text" id="uid">
-            </div>
-            <div class="input-container">
-                <label for="password">Password</label>
-                <input id="password" name="password" class="form-input" type="password">
-            </div>
-            <button class="submit-btn" type="submit">Log In</button>
-        </form>
-    </div>
+    <h1 style="text-align: center;margin-bottom:1em;">Sign In</h1>
+    <form action="/admin" method="POST" class="form">
+        <div class="form-div">
+            <input name="Username" class="form-input" type="text" id="uid" required>
+            <span>Username</span>
+        </div>
+        <div class="form-div">
+            <input id="password" name="password" class="form-input" type="password" required>
+            <span>Password</span>
+        </div>
+        <button class="button" type="submit">Log In</button>
+    </form>
 </body>
 </html>
