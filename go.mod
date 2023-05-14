@@ -1,4 +1,4 @@
-module github.com/Nelwhix/Mech-attendance
+module github.com/Nelwhix/mech-attendance
 
 go 1.19
 

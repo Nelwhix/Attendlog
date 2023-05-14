@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/Nelwhix/mech-attendance/Controllers"
+	"github.com/Nelwhix/mech-attendance/controllers"
 	"github.com/go-faker/faker/v4"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -36,24 +36,20 @@ func main() {
 
 	router := mux.NewRouter()
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Welcome to MECH25 Attendance Web App by Isioma Nelson")
+		fmt.Fprintf(w, "Attendlog API %v by Isioma Nelson", os.Getenv("APP_VERSION"))
 	})
 
-	// Record Controller
-	router.HandleFunc("/attendance/{course}", Controllers.RenderAttendanceForm).Methods("GET")
-	router.HandleFunc("/attendance/{course}", Controllers.SubmitAttendance).Methods("POST")
-	router.HandleFunc("/records/{course}", Controllers.GetRecords).Methods("GET")
-	router.HandleFunc("/records/delete/{record}", Controllers.DeleteRecord).Methods("POST")
-	router.HandleFunc("/records/export/{course}", Controllers.ExportRecords).Methods("GET")
+	router.HandleFunc("/attendance/{course}", controllers.RenderAttendanceForm).Methods("GET")
+	router.HandleFunc("/attendance/{course}", controllers.SubmitAttendance).Methods("POST")
+	router.HandleFunc("/records/{course}", controllers.GetRecords).Methods("GET")
+	router.HandleFunc("/records/delete/{record}", controllers.DeleteRecord).Methods("POST")
+	router.HandleFunc("/records/export/{course}", controllers.ExportRecords).Methods("GET")
 
-	// User Controller
-	router.HandleFunc("/admin", Controllers.RenderLogin).Methods("GET")
-	router.HandleFunc("/dashboard", Controllers.RenderDashboard).Methods("GET")
-	router.HandleFunc("/admin", Controllers.Login).Methods("POST")
+	router.HandleFunc("/admin", controllers.Login).Methods("POST")
 	
 	// Course Controller
-	router.HandleFunc("/courses/add", Controllers.RenderCourseForm).Methods("GET")
-	router.HandleFunc("/courses/add", Controllers.AddCourse).Methods("POST")
+	router.HandleFunc("/courses/add", controllers.RenderCourseForm).Methods("GET")
+	router.HandleFunc("/courses/add", controllers.AddCourse).Methods("POST")
 	router.PathPrefix("/").Handler(http.StripPrefix("/resources", http.FileServer(http.Dir("resources/"))))
 
 	handlers.CompressHandler(router)

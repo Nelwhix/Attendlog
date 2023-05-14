@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	UserName = "Nelwhix"
+	UserName = "nelwhix"
 	Password = "admin"
 )
 
@@ -87,7 +87,7 @@ func RenderDashboard(w http.ResponseWriter, r *http.Request) {
 	isActive := hasActiveSession(r)
 
 	if !isActive {
-		fmt.Fprintln(w, "You are not authorized to view this page")
+		http.Redirect(w, r, "/admin", http.StatusFound)
 		return
 	}
 

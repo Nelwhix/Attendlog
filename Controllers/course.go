@@ -1,4 +1,4 @@
-package Controllers
+package controllers
 
 import (
 	"fmt"
@@ -47,7 +47,9 @@ func AddCourse(w http.ResponseWriter, r *http.Request) {
 
 	db.AutoMigrate(&Course{})
 	db.Create(&course)
-	fmt.Fprintf(w, "Course added successfully");
+
+	target := "/dashboard"
+	http.Redirect(w, r, target, http.StatusCreated)
 }
 
 func validateCourse(w http.ResponseWriter, r *http.Request, course *Course) (bool, string) {
