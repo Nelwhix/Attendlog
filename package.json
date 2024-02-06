@@ -1,0 +1,17 @@
+{
+  "name": "attendlog",
+  "version": "0.0.1",
+  "description": "Attendlog is a simple attendance app made with html, css, js, go  and some love",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.5.7",
+    "daisyui": "^4.6.1",
+    "tailwindcss": "^3.4.1"
+  }
+}
