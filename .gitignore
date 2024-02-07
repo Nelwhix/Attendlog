@@ -1,4 +1,4 @@
 app.db
 .env
 node_modules
-todos.json
+tmp

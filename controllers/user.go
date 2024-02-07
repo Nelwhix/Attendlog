@@ -1,77 +1,32 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/Nelwhix/Attendlog/models"
+	"github.com/Nelwhix/Attendlog/requests"
+	"github.com/Nelwhix/Attendlog/services"
+	"github.com/go-playground/validator/v10"
+	"github.com/gorilla/csrf"
+	"github.com/gorilla/schema"
+	"github.com/gorilla/securecookie"
+	"github.com/oklog/ulid/v2"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 	"html/template"
 	"log"
 	"net/http"
-
-	"github.com/asaskevich/govalidator"
-	"github.com/gorilla/schema"
-	"github.com/gorilla/securecookie"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
+	"os"
+	"time"
 )
-
-const (
-	UserName = "nelwhix"
-	Password = "admin"
-)
-
-type Courses struct {
-	Courses []Course
-}
 
 var cookieHandler = securecookie.New(
 	securecookie.GenerateRandomKey(64),
 	securecookie.GenerateRandomKey(32),
 )
 
-func setSession(userName string, response http.ResponseWriter) {
-	value := map[string]string{
-		"username": userName,
-	}
-	encoded, err := cookieHandler.Encode("session", value)
-
-	if err == nil {
-		cookie := &http.Cookie{
-			Name:  "session",
-			Value: encoded,
-			Path:  "/",
-		}
-		http.SetCookie(response, cookie)
-	}
-}
-
-func hasActiveSession(request *http.Request) bool {
-	cookie, err := request.Cookie("session")
-
-	if err == nil {
-		cookieValue := make(map[string]string)
-
-		err = cookieHandler.Decode("session", cookie.Value, &cookieValue)
-
-		var userName string
-		if err == nil {
-			userName = cookieValue["username"]
-		}
-
-		if userName != "" {
-			return true
-		}
-	}
-	return false
-}
-
-func clearSession(response http.ResponseWriter) {
-	cookie := &http.Cookie{
-		Name:   "session",
-		Value:  "",
-		Path:   "/",
-		MaxAge: -1,
-	}
-	http.SetCookie(response, cookie)
-}
+var decoder = schema.NewDecoder()
+var validate = validator.New(validator.WithRequiredStructEnabled())
 
 func RenderLogin(w http.ResponseWriter, r *http.Request) {
 	parsedTemplate, err := template.ParseFiles("views/login.tmpl")
@@ -94,101 +49,128 @@ func RenderSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = parsedTemplate.Execute(w, nil)
+	err = parsedTemplate.Execute(w, map[string]interface{}{
+		csrf.TemplateTag: csrf.TemplateField(r),
+	})
 	if err != nil {
 		log.Printf("Error occured while executing the template or writing its output : %v", err)
 		return
 	}
 }
 
-func RenderDashboard(w http.ResponseWriter, r *http.Request) {
-	isActive := hasActiveSession(r)
-
-	if !isActive {
-		http.Redirect(w, r, "/admin", http.StatusFound)
+func RenderSignUpWithData(w http.ResponseWriter, r *http.Request, flashMessage map[string]string) {
+	parsedTemplate, err := template.ParseFiles("views/signup.tmpl")
+	if err != nil {
+		log.Printf("Error occured while executing the template or writing its output : %v", err)
 		return
 	}
 
-	db, err := gorm.Open(sqlite.Open("app.db"), &gorm.Config{})
-
-	if err != nil {
-		panic("failed to connect database")
-	}
-
-	var courses []Course
-	db.Find(&courses)
-
-	data := Courses{
-		Courses: courses,
-	}
-
-	parsedTemplate, parseErr := template.ParseFiles("views/dashboard.html")
-	if parseErr != nil {
-		log.Printf("Error parsing html: %v", parseErr)
-	}
-	err = parsedTemplate.Execute(w, data)
-
+	jsonData, _ := json.Marshal(flashMessage)
+	err = parsedTemplate.Execute(w, map[string]interface{}{
+		csrf.TemplateTag: csrf.TemplateField(r),
+		"flashMessage":   string(jsonData),
+	})
 	if err != nil {
 		log.Printf("Error occured while executing the template or writing its output : %v", err)
 		return
 	}
 }
 
-func readLoginForm(r *http.Request) *User {
-	r.ParseForm()
-	user := new(User)
-	decoder := schema.NewDecoder()
-	decodeErr := decoder.Decode(user, r.PostForm)
+func SignUp(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 
-	if decodeErr != nil {
-		log.Printf("error mapping parsed form data to struct : %v", decodeErr)
-	}
-
-	return user
-}
-
-func validateUser(w http.ResponseWriter, r *http.Request, user *User) (bool, string) {
-	valid, validationErr := govalidator.ValidateStruct(user)
-
-	if !valid {
-		userNameErr := govalidator.ErrorByField(validationErr, "Username")
-		passwordErr := govalidator.ErrorByField(validationErr, "Password")
-
-		if userNameErr != "" {
-			log.Printf("Username validation error : %v", userNameErr)
-			return valid, "Please fill in a valid Username"
+		flashMessage := map[string]string{
+			"type":    "error",
+			"message": "error parsing form",
 		}
-
-		if passwordErr != "" {
-			log.Printf("Password validation error : %v", passwordErr)
-			return valid, "Please fill in a valid password"
-		}
-	}
-
-	return valid, "Validation error"
-}
-
-func Login(w http.ResponseWriter, r *http.Request) {
-	user := readLoginForm(r)
-	valid, validationErr := validateUser(w, r, user)
-
-	if !valid {
-		fmt.Fprint(w, validationErr)
-		return
-	}
-	target := "/admin"
-	if user.Username == UserName && user.Password == Password {
-		setSession(user.Username, w)
-		target = "/dashboard"
-	} else {
-		fmt.Fprintf(w, "Bad credentials")
+		RenderSignUpWithData(w, r, flashMessage)
+		log.Printf("error parsing form: %v", err.Error())
 		return
 	}
 
-	http.Redirect(w, r, target, http.StatusFound)
-}
+	r.PostForm.Del("gorilla.csrf.Token")
 
-func Logout(w http.ResponseWriter, r *http.Request) {
-	clearSession(w)
-	http.Redirect(w, r, "/admin", http.StatusFound)
+	var signupRequest requests.SignUp
+	err = decoder.Decode(&signupRequest, r.PostForm)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+
+		flashMessage := map[string]string{
+			"type":    "error",
+			"message": err.Error(),
+		}
+		RenderSignUpWithData(w, r, flashMessage)
+		log.Printf("error decoding form: %v", err.Error())
+		return
+	}
+
+	err = validate.Struct(signupRequest)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+
+		flashMessage := map[string]string{
+			"type":    "error",
+			"message": err.Error(),
+		}
+		RenderSignUpWithData(w, r, flashMessage)
+		log.Printf("validation error: %v", err.Error())
+		return
+	}
+
+	// insert user
+	db, err := gorm.Open(sqlite.Open(fmt.Sprintf("./storage/app-%v.db", os.Getenv("APP_ENV"))), &gorm.Config{})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "Internal Server Error")
+		log.Printf("error opening database: %v", err.Error())
+		return
+	}
+	var newUser models.User
+	// Migrate the schema
+	db.AutoMigrate(&models.User{})
+
+	newUser = models.User{
+		ID:               ulid.Make().String(),
+		FirstName:        signupRequest.FirstName,
+		LastName:         signupRequest.LastName,
+		UserName:         signupRequest.UserName,
+		Email:            signupRequest.Email,
+		Password:         services.HashPassword(signupRequest.Password),
+		SecurityQuestion: signupRequest.SecurityQuestion,
+		Answer:           services.HashPassword(signupRequest.Answer),
+		CreatedAt:        time.Now(),
+		UpdatedAt:        time.Now(),
+	}
+	result := db.Create(&newUser)
+	if result.Error != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "Internal Server Error")
+		log.Printf("error inserting record: %v", result.Error.Error())
+		return
+	}
+
+	//token, err := services.GenerateJwt(newUser.ID)
+	//if err != nil {
+	//	w.WriteHeader(http.StatusInternalServerError)
+	//	fmt.Fprint(w, "Internal Server Error")
+	//	log.Printf("error generating token: %v", err.Error())
+	//	return
+	//}
+	//// set it in the cookie
+	//cookie := &http.Cookie{
+	//	Name:     "accessToken",
+	//	Value:    token,
+	//	Expires:  time.Now().Add(24 * time.Hour), // Cookie expires in 24 hours
+	//	HttpOnly: true,
+	//	Secure:   true,
+	//}
+
+	flashMessage := map[string]string{
+		"type":    "success",
+		"message": "account created successfully, proceed to login!",
+	}
+	w.WriteHeader(http.StatusCreated)
+	RenderSignUpWithData(w, r, flashMessage)
 }
