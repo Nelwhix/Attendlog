@@ -4,7 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Nelwhix/Attendlog/controllers"
+	"github.com/Nelwhix/Attendlog/models"
+	"github.com/Nelwhix/Attendlog/services"
 	"github.com/gorilla/csrf"
+	"gorm.io/driver/sqlite"
 	"log"
 	"net/http"
 	"os"
@@ -21,16 +24,10 @@ const (
 	ConnPort = "8080"
 )
 
-type Record struct {
-	gorm.Model
-	Course string
-	Name   string `valid:"required"`
-	Matric string `valid:"numeric,required"`
-}
-
 func authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, err := r.Cookie("accessToken")
+		cCookie, err := r.Cookie("accessToken")
+
 		if err != nil {
 			if errors.Is(err, http.ErrNoCookie) {
 				http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
@@ -38,6 +35,13 @@ func authMiddleware(next http.Handler) http.Handler {
 			}
 
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		_, err = services.ValidateJwt(cCookie.Value)
+		if err != nil {
+			log.Printf("error validating jwt: %v", err)
+			http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
 			return
 		}
 
@@ -52,33 +56,36 @@ func main() {
 	}
 
 	router := mux.NewRouter()
+
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./resources/public"))))
+	router.Handle("/favicon.ico", http.FileServer(http.Dir("./resources/public")))
 	router.HandleFunc("/auth/login", controllers.RenderLogin).Methods("GET")
+	router.HandleFunc("/auth/login", controllers.Login).Methods("POST")
 	router.HandleFunc("/auth/signup", controllers.RenderSignUp).Methods("GET")
 	router.HandleFunc("/auth/signup", controllers.SignUp).Methods("POST")
 
 	protected := router.PathPrefix("/").Subrouter()
 	protected.Use(authMiddleware)
 	protected.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Attendlog API %v by Isioma Nelson", os.Getenv("APP_VERSION"))
+		fmt.Fprintf(w, "Attendlog %v by Isioma Nelson", os.Getenv("APP_VERSION"))
 	})
-
-	//router.HandleFunc("/attendance/{course}", controllers.RenderAttendanceForm).Methods("GET")
-	//router.HandleFunc("/attendance/{course}", controllers.SubmitAttendance).Methods("POST")
-	//router.HandleFunc("/records/{course}", controllers.GetRecords).Methods("GET")
-	//router.HandleFunc("/records/delete/{record}", controllers.DeleteRecord).Methods("POST")
-	//router.HandleFunc("/records/export/{course}", controllers.ExportRecords).Methods("GET")
-	//
-	//router.HandleFunc("/admin", controllers.Login).Methods("POST")
-	//
-	//// Course Controller
-	//router.HandleFunc("/courses/add", controllers.RenderCourseForm).Methods("GET")
-	//router.HandleFunc("/courses/add", controllers.AddCourse).Methods("POST")
-	//router.PathPrefix("/").Handler(http.StripPrefix("/resources", http.FileServer(http.Dir("resources/"))))
+	protected.HandleFunc("/dashboard", controllers.RenderDashboard).Methods("GET")
 
 	compressed := handlers.CompressHandler(router)
 	loggedRouter := handlers.LoggingHandler(os.Stdout, compressed)
 	csrfMiddleware := csrf.Protect([]byte(os.Getenv("APP_KEY")))
+
+	db, err := gorm.Open(sqlite.Open(fmt.Sprintf("./storage/app-%v.db", os.Getenv("APP_ENV"))), &gorm.Config{})
+	if err != nil {
+		log.Fatal("error opening db: ", err.Error())
+		return
+	}
+
+	err = db.AutoMigrate(&models.User{}, &models.Record{}, &models.Link{})
+	if err != nil {
+		log.Fatal("error migrating models : ", err.Error())
+		return
+	}
 
 	log.Printf("Server starting on port %v\n", ConnPort)
 	srv := &http.Server{
@@ -87,7 +94,8 @@ func main() {
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
-	err := srv.ListenAndServe()
+
+	err = srv.ListenAndServe()
 
 	if err != nil {
 		log.Fatal("error starting http server : ", err)

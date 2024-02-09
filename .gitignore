@@ -2,3 +2,4 @@ app.db
 .env
 node_modules
 tmp
+cert
