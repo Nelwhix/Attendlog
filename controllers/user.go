@@ -12,12 +12,9 @@ import (
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/schema"
 	"github.com/oklog/ulid/v2"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 	"html/template"
 	"log"
 	"net/http"
-	"os"
 	"time"
 )
 
@@ -57,24 +54,7 @@ func RenderSignUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func RenderDashboard(w http.ResponseWriter, r *http.Request) {
-	cCookie, _ := r.Cookie("accessToken")
-	userID, _ := services.ValidateJwt(cCookie.Value)
-	var cUser models.User
-	db, err := database.New()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, "Internal Server Error")
-		log.Printf("error opening database: %v", err.Error())
-		return
-	}
-
-	db.First(&cUser, "id = ?", userID)
-	if cUser.Email == "" {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, "Internal Server Error")
-		log.Println("could not retrieve user")
-		return
-	}
+	cUser := r.Context().Value("currentUser").(models.User)
 
 	parsedTemplate, err := template.ParseFiles("templates/dashboard.tmpl")
 	if err != nil {
@@ -85,6 +65,26 @@ func RenderDashboard(w http.ResponseWriter, r *http.Request) {
 	err = parsedTemplate.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		"UserName":       cUser.UserName,
+	})
+	if err != nil {
+		log.Printf("Error occured while executing the template or writing its output : %v", err)
+		return
+	}
+}
+
+func RenderDashboardWithData(w http.ResponseWriter, r *http.Request, flashMessage map[string]string) {
+	cUser := r.Context().Value("currentUser").(models.User)
+	jsonData, _ := json.Marshal(flashMessage)
+	parsedTemplate, err := template.ParseFiles("templates/dashboard.tmpl")
+	if err != nil {
+		log.Printf("Error occured while executing the template or writing its output : %v", err)
+		return
+	}
+
+	err = parsedTemplate.Execute(w, map[string]interface{}{
+		csrf.TemplateTag: csrf.TemplateField(r),
+		"UserName":       cUser.UserName,
+		"flashMessage":   string(jsonData),
 	})
 	if err != nil {
 		log.Printf("Error occured while executing the template or writing its output : %v", err)
@@ -172,7 +172,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// insert user
-	db, err := gorm.Open(sqlite.Open(fmt.Sprintf("./storage/app-%v.db", os.Getenv("APP_ENV"))), &gorm.Config{})
+	db, err := database.New()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(w, "Internal Server Error")
@@ -305,8 +305,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	db, err := database.New()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, "Internal Server Error")
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		log.Printf("error opening db: %v", err.Error())
 		return
 	}
@@ -331,11 +330,14 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cookie := &http.Cookie{
-		Name:  "accessToken",
-		Value: token,
-		Path:  "/",
+		Name:     "accessToken",
+		Value:    token,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
 	}
-	if loginRequest.RememberMe == "1" {
+	if loginRequest.RememberMe {
 		cookie.Expires = time.Now().Add(24 * time.Hour)
 	}
 	http.SetCookie(w, cookie)

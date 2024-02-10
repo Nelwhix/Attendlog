@@ -7,7 +7,7 @@
 </head>
 <body class="font-inter">
 <div id="flashContainer" class="toast toast-top toast-end z-50">
-    <p id="flashBox" class="hidden alert-success alert-error">{{.flashMessage}}</p>
+    <p id="flashBox" class="hidden">{{.flashMessage}}</p>
     <div id="alertBox" class="alert text-white">
         <p id="flashText" class="max-w-xs h-fit"></p>
     </div>
@@ -16,7 +16,7 @@
         Attendlog
     </h1>
 
-    <form method="post" action="/auth/login" class="mt-5 px-5 space-y-5 md:px-[20%]">
+    <form method="post" action="/auth/login" class="mt-5 px-5 space-y-5 md:px-[30%]">
         {{.csrfField}}
         <fieldset class="form-control w-full">
             <label for="email" class="label">
@@ -50,7 +50,7 @@
             </button>
         </fieldset>
 
-        <fieldset class="form-control w-1/2">
+        <fieldset class="form-control w-1/3 md:w-1/4">
             <label class="label cursor-pointer">
                 <span class="label-text">Remember me</span>
                 <input name="remember_me" type="checkbox" class="checkbox" value="1" />

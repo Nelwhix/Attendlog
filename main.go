@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/Nelwhix/Attendlog/controllers"
@@ -38,12 +39,21 @@ func authMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		_, err = services.ValidateJwt(cCookie.Value)
+		userID, err := services.ValidateJwt(cCookie.Value)
 		if err != nil {
 			log.Printf("error validating jwt: %v", err)
 			http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
 			return
 		}
+		cUser, err := models.GetUserById(userID)
+		if err != nil {
+			log.Printf("error retrieving user: %v", err)
+			http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "currentUser", cUser)
+		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)
 	})
@@ -66,11 +76,13 @@ func main() {
 	router.HandleFunc("/auth/login", controllers.Login).Methods("POST")
 	router.HandleFunc("/auth/signup", controllers.RenderSignUp).Methods("GET")
 	router.HandleFunc("/auth/signup", controllers.SignUp).Methods("POST")
+	router.HandleFunc("/generate-qrcode", controllers.GenerateQrCode).Methods("GET")
 
 	protected := router.PathPrefix("/").Subrouter()
 	protected.Use(authMiddleware)
 	protected.HandleFunc("/dashboard", controllers.RenderDashboard).Methods("GET")
 	protected.HandleFunc("/attendance", controllers.CreateNewLink).Methods("POST")
+	protected.HandleFunc("/attendance-success", controllers.RenderAttendanceSuccess).Methods("GET")
 
 	compressed := handlers.CompressHandler(router)
 	loggedRouter := handlers.LoggingHandler(os.Stdout, compressed)
@@ -97,7 +109,6 @@ func main() {
 	}
 
 	err = srv.ListenAndServe()
-
 	if err != nil {
 		log.Fatal("error starting http server : ", err)
 		return

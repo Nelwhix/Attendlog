@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/Nelwhix/Attendlog/database"
 	"time"
 )
 
@@ -16,4 +17,19 @@ type User struct {
 	Links            []Link
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
+}
+
+func GetUserById(userID string) (User, error) {
+	var cUser User
+	db, err := database.New()
+	if err != nil {
+		return User{}, err
+	}
+
+	db.First(&cUser, "id = ?", userID)
+	if cUser.Email == "" {
+		return User{}, err
+	}
+
+	return cUser, nil
 }
