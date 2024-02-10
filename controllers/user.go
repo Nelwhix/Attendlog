@@ -331,10 +331,12 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cookie := &http.Cookie{
-		Name:    "accessToken",
-		Value:   token,
-		Expires: time.Now().Add(24 * time.Hour),
-		Path:    "/",
+		Name:  "accessToken",
+		Value: token,
+		Path:  "/",
+	}
+	if loginRequest.RememberMe == "1" {
+		cookie.Expires = time.Now().Add(24 * time.Hour)
 	}
 	http.SetCookie(w, cookie)
 

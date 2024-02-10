@@ -5,7 +5,7 @@
     <title>Dashboard - Attendlog</title>
     <link rel="stylesheet" href="/static/css/index.css">
 </head>
-<body class="font-inter relative h-full">
+<body class="font-inter relative h-screen">
     <header class="px-5 py-5 flex justify-between items-center bg-gray-200">
         <div class="w-10 h-10">
             <img src="/static/images/logo.webp" alt="Attendlog logo">
@@ -19,9 +19,24 @@
     </main>
 
     <div class="md:hidden absolute w-8 h-8 rounded-full bottom-0 right-0">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
+        <button onclick="createLinkModal.showModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+        </button>
     </div>
+
+    <dialog id="createLinkModal" class="modal modal-bottom sm:modal-middle">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">Create New Attendance Link!</h3>
+            <p class="py-4">Press ESC key or click the button below to close</p>
+            <div class="modal-action">
+                <form method="dialog">
+                    <!-- if there is a button in form, it will close the modal -->
+                    <button class="btn">Close</button>
+                </form>
+            </div>
+        </div>
+    </dialog>
 </body>
 </html>

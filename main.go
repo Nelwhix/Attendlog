@@ -57,6 +57,9 @@ func main() {
 
 	router := mux.NewRouter()
 
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Attendlog %v by Isioma Nelson", os.Getenv("APP_VERSION"))
+	})
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./resources/public"))))
 	router.Handle("/favicon.ico", http.FileServer(http.Dir("./resources/public")))
 	router.HandleFunc("/auth/login", controllers.RenderLogin).Methods("GET")
@@ -66,10 +69,8 @@ func main() {
 
 	protected := router.PathPrefix("/").Subrouter()
 	protected.Use(authMiddleware)
-	protected.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Attendlog %v by Isioma Nelson", os.Getenv("APP_VERSION"))
-	})
 	protected.HandleFunc("/dashboard", controllers.RenderDashboard).Methods("GET")
+	protected.HandleFunc("/attendance", controllers.CreateNewLink).Methods("POST")
 
 	compressed := handlers.CompressHandler(router)
 	loggedRouter := handlers.LoggingHandler(os.Stdout, compressed)
