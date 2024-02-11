@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Nelwhix/Attendlog/controllers"
+	"github.com/Nelwhix/Attendlog/database"
 	"github.com/Nelwhix/Attendlog/models"
 	"github.com/Nelwhix/Attendlog/services"
 	"github.com/gorilla/csrf"
-	"gorm.io/driver/sqlite"
 	"log"
 	"net/http"
 	"os"
@@ -17,7 +17,6 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
-	"gorm.io/gorm"
 )
 
 const (
@@ -60,35 +59,12 @@ func authMiddleware(next http.Handler) http.Handler {
 }
 
 func main() {
-	Enverr := godotenv.Load()
-	if Enverr != nil {
+	err := godotenv.Load()
+	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
-	router := mux.NewRouter()
-
-	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Attendlog %v by Isioma Nelson", os.Getenv("APP_VERSION"))
-	})
-	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./resources/public"))))
-	router.Handle("/favicon.ico", http.FileServer(http.Dir("./resources/public")))
-	router.HandleFunc("/auth/login", controllers.RenderLogin).Methods("GET")
-	router.HandleFunc("/auth/login", controllers.Login).Methods("POST")
-	router.HandleFunc("/auth/signup", controllers.RenderSignUp).Methods("GET")
-	router.HandleFunc("/auth/signup", controllers.SignUp).Methods("POST")
-	router.HandleFunc("/generate-qrcode", controllers.GenerateQrCode).Methods("GET")
-
-	protected := router.PathPrefix("/").Subrouter()
-	protected.Use(authMiddleware)
-	protected.HandleFunc("/dashboard", controllers.RenderDashboard).Methods("GET")
-	protected.HandleFunc("/attendance", controllers.CreateNewLink).Methods("POST")
-	protected.HandleFunc("/attendance-success", controllers.RenderAttendanceSuccess).Methods("GET")
-
-	compressed := handlers.CompressHandler(router)
-	loggedRouter := handlers.LoggingHandler(os.Stdout, compressed)
-	csrfMiddleware := csrf.Protect([]byte(os.Getenv("APP_KEY")))
-
-	db, err := gorm.Open(sqlite.Open(fmt.Sprintf("./storage/app-%v.db", os.Getenv("APP_ENV"))), &gorm.Config{})
+	db, err := database.New()
 	if err != nil {
 		log.Fatal("error opening db: ", err.Error())
 		return
@@ -99,6 +75,31 @@ func main() {
 		log.Fatal("error migrating models : ", err.Error())
 		return
 	}
+
+	controller := controllers.NewController(db)
+
+	router := mux.NewRouter()
+
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Attendlog %v by Isioma Nelson", os.Getenv("APP_VERSION"))
+	})
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./resources/public"))))
+	router.Handle("/favicon.ico", http.FileServer(http.Dir("./resources/public")))
+	router.HandleFunc("/auth/login", controllers.RenderLogin).Methods("GET")
+	router.HandleFunc("/auth/login", controller.Login).Methods("POST")
+	router.HandleFunc("/auth/signup", controllers.RenderSignUp).Methods("GET")
+	router.HandleFunc("/auth/signup", controllers.SignUp).Methods("POST")
+	router.HandleFunc("/generate-qrcode", controllers.GenerateQrCode).Methods("GET")
+
+	protected := router.PathPrefix("/").Subrouter()
+	protected.Use(authMiddleware)
+	protected.HandleFunc("/dashboard", controllers.RenderDashboard).Methods("GET")
+	protected.HandleFunc("/attendance", controllers.CreateNewLink).Methods("POST")
+	protected.HandleFunc("/attendance/{id}", controllers.RenderAttendance).Methods("GET")
+
+	compressed := handlers.CompressHandler(router)
+	loggedRouter := handlers.LoggingHandler(os.Stdout, compressed)
+	csrfMiddleware := csrf.Protect([]byte(os.Getenv("APP_KEY")))
 
 	log.Printf("Server starting on port %v\n", ConnPort)
 	srv := &http.Server{

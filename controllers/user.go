@@ -56,6 +56,16 @@ func RenderSignUp(w http.ResponseWriter, r *http.Request) {
 func RenderDashboard(w http.ResponseWriter, r *http.Request) {
 	cUser := r.Context().Value("currentUser").(models.User)
 
+	db, err := database.New()
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		log.Printf("Error opening db: %v", err.Error())
+		return
+	}
+
+	var links []models.Link
+	db.Where("user_id = ?", cUser.ID).Limit(50).Find(&links)
+
 	parsedTemplate, err := template.ParseFiles("templates/dashboard.tmpl")
 	if err != nil {
 		log.Printf("Error occured while executing the template or writing its output : %v", err)
@@ -65,6 +75,7 @@ func RenderDashboard(w http.ResponseWriter, r *http.Request) {
 	err = parsedTemplate.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		"UserName":       cUser.UserName,
+		"Links":          links,
 	})
 	if err != nil {
 		log.Printf("Error occured while executing the template or writing its output : %v", err)
@@ -257,7 +268,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	RenderSignUpWithData(w, r, flashMessage)
 }
 
-func Login(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -303,13 +314,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	// fetch user, attempt auth
 	var newUser models.User
 
-	db, err := database.New()
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		log.Printf("error opening db: %v", err.Error())
-		return
-	}
-	db.Where("email_address = ?", loginRequest.Email).First(&newUser)
+	c.db.Where("email_address = ?", loginRequest.Email).First(&newUser)
 	if newUser.ID == "" {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 
@@ -323,8 +328,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	token, err := services.GenerateJwt(newUser.ID)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, "Internal Server Error")
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		log.Printf("error generating token: %v", err.Error())
 		return
 	}

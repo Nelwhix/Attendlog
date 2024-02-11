@@ -1,15 +1,18 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/Nelwhix/Attendlog/database"
 	"github.com/Nelwhix/Attendlog/models"
 	"github.com/Nelwhix/Attendlog/requests"
 	"github.com/gorilla/csrf"
+	"github.com/gorilla/mux"
 	"github.com/oklog/ulid/v2"
 	"github.com/skip2/go-qrcode"
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -77,12 +80,17 @@ func CreateNewLink(w http.ResponseWriter, r *http.Request) {
 		log.Printf("error inserting record: %v", result.Error.Error())
 		return
 	}
+
+	redirectUrl := fmt.Sprintf("/attendance/%v", nLink.ID)
+	http.Redirect(w, r, redirectUrl, http.StatusFound)
 }
 
-func RenderAttendanceSuccess(w http.ResponseWriter, r *http.Request) {
+func RenderAttendance(w http.ResponseWriter, r *http.Request) {
+	pathParams := mux.Vars(r)
+	link := fmt.Sprintf("%v/link/%v", os.Getenv("APP_URL"), pathParams["id"])
 	cUser := r.Context().Value("currentUser").(models.User)
 
-	parsedTemplate, err := template.ParseFiles("templates/attendance-success.tmpl")
+	parsedTemplate, err := template.ParseFiles("templates/attendance.tmpl")
 	if err != nil {
 		log.Printf("Error occured while executing the template or writing its output : %v", err)
 		return
@@ -91,6 +99,7 @@ func RenderAttendanceSuccess(w http.ResponseWriter, r *http.Request) {
 	err = parsedTemplate.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		"UserName":       cUser.UserName,
+		"AttendanceLink": link,
 	})
 	if err != nil {
 		log.Printf("Error occured while executing the template or writing its output : %v", err)
