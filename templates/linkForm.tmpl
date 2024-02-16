@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Link - Attendlog </title>
+    <link rel="stylesheet" href="/static/css/index.css">
+</head>
+<body class="font-inter">
+<div id="flashContainer" class="toast toast-top toast-end z-50">
+    <p id="flashBox" class="hidden">{{.flashMessage}}</p>
+    <div id="alertBox" class="alert text-white">
+        <p id="flashText" class="max-w-xs h-fit"></p>
+    </div>
+</div>
+<header class="px-5 py-5 flex justify-between items-center bg-gray-200">
+    <div class="w-10 h-10">
+        <img src="/static/images/logo.webp" alt="Attendlog logo">
+    </div>
+
+    <p class="capitalize">Hi, {{.UserName}}</p>
+</header>
+
+<main class="px-5">
+    <h1 class="my-5">{{ .Link.Title }}</h1>
+
+    <form id="createLinkForm" method="post" action="/attendance" class="mt-5 space-y-5">
+        {{.csrfField}}
+        <fieldset class="form-control w-full">
+            <label for="firstName" class="label">
+                <span class="label-text">First Name</span>
+            </label>
+            <input
+                    id="firstName"
+                    name="first_name"
+                    type="text"
+                    placeholder="Please enter your first name"
+                    class="input input-bordered w-full"
+            />
+        </fieldset>
+
+        <fieldset class="form-control w-full">
+            <label for="lastName" class="label">
+                <span class="label-text">Last Name</span>
+            </label>
+            <input
+                    id="lastName"
+                    name="last_name"
+                    type="text"
+                    placeholder="Please enter your last name"
+                    class="input input-bordered w-full"
+            />
+        </fieldset>
+
+        <fieldset class="form-control w-full">
+            <label for="email" class="label">
+                <span class="label-text">Email Address</span>
+            </label>
+            <input
+                    id="email"
+                    name="email_address"
+                    type="email"
+                    placeholder="Please enter your E-mail"
+                    class="input input-bordered w-full"
+            />
+        </fieldset>
+
+        <div class="flex justify-between">
+            <fieldset class="form-control">
+                <label class="label cursor-pointer">
+                    <span class="label-text">Enable location restriction</span>
+                    <input id="locationCheckbox" name="location_restriction" type="checkbox" class="checkbox ml-3" value="1" />
+                </label>
+            </fieldset>
+
+            <fieldset class="form-control">
+                <label class="label cursor-pointer">
+                    <span class="label-text">Enable Signature</span>
+                    <input name="has_signature" type="checkbox" class="checkbox ml-3" value="1" />
+                </label>
+            </fieldset>
+        </div>
+
+        <input id="latitudeInput" name="latitude" type="hidden" />
+        <input id="longitudeInput" name="longitude" type="hidden" />
+
+        <div class="w-full">
+            <button class="btn w-full bg-black text-white">
+                Create
+            </button>
+        </div>
+    </form>
+</main>
+
+<script src="/static/js/flash.js"></script>
+<script src="/static/js/toast.js"></script>
+<script>
+    const cLink = {{ .Link }}
+    console.log(cLink)
+
+    const showPosition = (position) => {
+        const long = position.coords.latitude.toFixed(6)
+        const lat = position.coords.longitude.toFixed(6)
+    }
+
+    const showError = (error) => {
+        switch(error.code) {
+            case error.PERMISSION_DENIED:
+                showToast({
+                    'type': 'error',
+                    'message': "User denied the request for Geolocation."
+                })
+                break;
+            case error.POSITION_UNAVAILABLE:
+                showToast({
+                    'type': 'error',
+                    'message': "Location information is unavailable."
+                })
+                break;
+            case error.TIMEOUT:
+                showToast({
+                    'type': 'error',
+                    'message': "The request to get user location timed out."
+                })
+                break;
+            default:
+                showToast({
+                    'type': 'error',
+                    'message': "An unknown error occurred."
+                })
+                break;
+        }
+    }
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition, showError)
+    } else {
+        showToast({
+            'type': 'error',
+            'message': "Your browser does not have geolocation enabled"
+        })
+    }
+</script>
+</body>
+</html>

@@ -25,8 +25,10 @@
 
         <div class="mt-5">
             {{ range .Links }}
-                <a href="/attendance/{{.ID}}">{{ .Title }}</a>
-                <p>{{ .CreatedAt }}</p>
+                <div class="flex justify-between">
+                    <a href="/attendance/{{.ID}}">{{ .Title }}</a>
+                    <p class="timestamp">{{ .CreatedAt }}</p>
+                </div>
            {{ end }}
         </div>
     </main>
@@ -121,7 +123,6 @@
         }
 
         locationCheckbox.addEventListener('change', (ev) => {
-            console.log("I changed!")
             if (ev.target.checked) {
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(showPosition, showError)
@@ -177,6 +178,12 @@
                 locationCheckbox.checked = false
             }
         })
+
+        const timeStamps = document.querySelectorAll('.timestamp');
+        for (let timestamp of timeStamps) {
+            const serverTime = new Date(Number(timestamp.innerHTML) * 1000)
+            timestamp.innerHTML = serverTime.toDateString()
+        }
     </script>
 </body>
 </html>

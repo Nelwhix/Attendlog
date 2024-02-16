@@ -1128,13 +1128,6 @@ html {
   color: var(--fallback-bc,oklch(var(--bc)/var(--tw-text-opacity)));
 }
 
-.label-text-alt {
-  font-size: 0.75rem;
-  line-height: 1rem;
-  --tw-text-opacity: 1;
-  color: var(--fallback-bc,oklch(var(--bc)/var(--tw-text-opacity)));
-}
-
 .input input:focus {
   outline: 2px solid transparent;
   outline-offset: 2px;
@@ -1671,6 +1664,10 @@ html {
   right: 0px;
 }
 
+.right-2 {
+  right: 0.5rem;
+}
+
 .right-4 {
   right: 1rem;
 }
@@ -1679,32 +1676,21 @@ html {
   top: 3rem;
 }
 
-.top-4 {
-  top: 1rem;
-}
-
-.right-2 {
-  right: 0.5rem;
-}
-
-.top-8 {
-  top: 2rem;
-}
-
-.top-0 {
-  top: 0px;
-}
-
-.top-1 {
-  top: 0.25rem;
-}
-
 .top-2 {
   top: 0.5rem;
 }
 
 .z-50 {
   z-index: 50;
+}
+
+.my-5 {
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.ml-3 {
+  margin-left: 0.75rem;
 }
 
 .mt-20 {
@@ -1717,10 +1703,6 @@ html {
 
 .mt-8 {
   margin-top: 2rem;
-}
-
-.ml-3 {
-  margin-left: 0.75rem;
 }
 
 .block {
@@ -1741,6 +1723,10 @@ html {
 
 .h-10 {
   height: 2.5rem;
+}
+
+.h-24 {
+  height: 6rem;
 }
 
 .h-4 {
@@ -1764,12 +1750,8 @@ html {
   height: 100vh;
 }
 
-.h-24 {
-  height: 6rem;
-}
-
-.w-1\/2 {
-  width: 50%;
+.w-1\/3 {
+  width: 33.333333%;
 }
 
 .w-10 {
@@ -1784,6 +1766,10 @@ html {
   width: 1.5rem;
 }
 
+.w-64 {
+  width: 16rem;
+}
+
 .w-8 {
   width: 2rem;
 }
@@ -1792,16 +1778,8 @@ html {
   width: 100%;
 }
 
-.w-1\/3 {
-  width: 33.333333%;
-}
-
-.w-40 {
-  width: 10rem;
-}
-
-.w-64 {
-  width: 16rem;
+.w-72 {
+  width: 18rem;
 }
 
 .max-w-xs {
@@ -1871,11 +1849,6 @@ html {
   padding-right: 1.25rem;
 }
 
-.py-4 {
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-}
-
 .py-5 {
   padding-top: 1.25rem;
   padding-bottom: 1.25rem;
@@ -1921,12 +1894,6 @@ html {
   color: rgb(255 255 255 / var(--tw-text-opacity));
 }
 
-.shadow-md {
-  --tw-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --tw-shadow-colored: 0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);
-  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
-}
-
 .shadow-sm {
   --tw-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --tw-shadow-colored: 0 1px 2px 0 var(--tw-shadow-color);
@@ -1961,18 +1928,9 @@ html {
     width: 25%;
   }
 
-  .md\:w-1\/6 {
-    width: 16.666667%;
-  }
-
   .md\:px-\[20\%\] {
     padding-left: 20%;
     padding-right: 20%;
-  }
-
-  .md\:px-\[40\%\] {
-    padding-left: 40%;
-    padding-right: 40%;
   }
 
   .md\:px-\[30\%\] {

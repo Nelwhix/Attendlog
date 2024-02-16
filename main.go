@@ -93,9 +93,10 @@ func main() {
 
 	protected := router.PathPrefix("/").Subrouter()
 	protected.Use(authMiddleware)
-	protected.HandleFunc("/dashboard", controllers.RenderDashboard).Methods("GET")
+	protected.HandleFunc("/dashboard", controller.RenderDashboard).Methods("GET")
 	protected.HandleFunc("/attendance", controllers.CreateNewLink).Methods("POST")
 	protected.HandleFunc("/attendance/{id}", controllers.RenderAttendance).Methods("GET")
+	protected.HandleFunc("/link/{id}", controller.RenderLinkForm).Methods("GET")
 
 	compressed := handlers.CompressHandler(router)
 	loggedRouter := handlers.LoggingHandler(os.Stdout, compressed)

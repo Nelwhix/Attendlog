@@ -7,6 +7,7 @@ import (
 	"github.com/Nelwhix/Attendlog/database"
 	"github.com/Nelwhix/Attendlog/models"
 	"github.com/Nelwhix/Attendlog/requests"
+	"github.com/Nelwhix/Attendlog/responses"
 	"github.com/Nelwhix/Attendlog/services"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/csrf"
@@ -53,18 +54,11 @@ func RenderSignUp(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func RenderDashboard(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) RenderDashboard(w http.ResponseWriter, r *http.Request) {
 	cUser := r.Context().Value("currentUser").(models.User)
 
-	db, err := database.New()
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		log.Printf("Error opening db: %v", err.Error())
-		return
-	}
-
 	var links []models.Link
-	db.Where("user_id = ?", cUser.ID).Limit(50).Find(&links)
+	c.db.Where("user_id = ?", cUser.ID).Limit(50).Find(&links)
 
 	parsedTemplate, err := template.ParseFiles("templates/dashboard.tmpl")
 	if err != nil {
@@ -72,10 +66,16 @@ func RenderDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var rLinks []responses.Link
+	for _, link := range links {
+		l := responses.NewLink(link)
+		rLinks = append(rLinks, l)
+	}
+
 	err = parsedTemplate.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		"UserName":       cUser.UserName,
-		"Links":          links,
+		"Links":          rLinks,
 	})
 	if err != nil {
 		log.Printf("Error occured while executing the template or writing its output : %v", err)

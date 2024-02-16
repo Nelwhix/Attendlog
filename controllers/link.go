@@ -125,3 +125,31 @@ func GenerateQrCode(w http.ResponseWriter, r *http.Request) {
 		log.Printf("error writing qrcode image to response: %s", err.Error())
 	}
 }
+
+func (c *Controller) RenderLinkForm(w http.ResponseWriter, r *http.Request) {
+	pathParams := mux.Vars(r)
+	cUser := r.Context().Value("currentUser").(models.User)
+
+	var cLink models.Link
+	c.db.First(&cLink, "id = ?", pathParams["id"])
+	if cLink.Title == "" {
+		http.Error(w, "Link no exist", http.StatusNotFound)
+		return
+	}
+
+	parsedTemplate, err := template.ParseFiles("templates/linkForm.tmpl")
+	if err != nil {
+		log.Printf("Error occured while executing the template or writing its output : %v", err)
+		return
+	}
+
+	err = parsedTemplate.Execute(w, map[string]interface{}{
+		csrf.TemplateTag: csrf.TemplateField(r),
+		"UserName":       cUser.UserName,
+		"Link":           cLink,
+	})
+	if err != nil {
+		log.Printf("Error occured while executing the template or writing its output : %v", err)
+		return
+	}
+}
