@@ -10,7 +10,7 @@
 </head>
 <body class="font-inter">
 <div id="flashContainer" class="toast toast-top toast-end z-50">
-    <p id="flashBox" class="hidden">{{.flashMessage}}</p>
+    <p id="flashBox" class="hidden rounded-xl">{{.flashMessage}}</p>
     <div id="alertBox" class="alert text-white">
         <p id="flashText" class="max-w-xs h-fit"></p>
     </div>
@@ -67,28 +67,11 @@
             />
         </fieldset>
 
-        <div class="flex justify-between">
-            <fieldset class="form-control">
-                <label class="label cursor-pointer">
-                    <span class="label-text">Enable location restriction</span>
-                    <input id="locationCheckbox" name="location_restriction" type="checkbox" class="checkbox ml-3" value="1" />
-                </label>
-            </fieldset>
-
-            <fieldset class="form-control">
-                <label class="label cursor-pointer">
-                    <span class="label-text">Enable Signature</span>
-                    <input name="has_signature" type="checkbox" class="checkbox ml-3" value="1" />
-                </label>
-            </fieldset>
-        </div>
-
-        <input id="latitudeInput" name="latitude" type="hidden" />
-        <input id="longitudeInput" name="longitude" type="hidden" />
+        <input type="hidden" name="signature" id="signatureInput" />
 
         <div class="w-full">
             <button class="btn w-full bg-black text-white">
-                Create
+                Submit
             </button>
         </div>
     </form>
@@ -96,16 +79,51 @@
 
 <script src="/static/js/flash.js"></script>
 <script src="/static/js/toast.js"></script>
+<script src="/static/js/distance.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
 <script>
+    const createLinkForm = document.getElementById('createLinkForm')
     const cLink = {{ .Link }}
-    console.log(cLink)
+    let isUserWithinLocation = false;
+    let signaturePad
+
+    if (cLink.HasSignature) {
+        console.log(createLinkForm.childNodes)
+        const container = document.createElement('div')
+        const label = document.createElement('p')
+        label.innerHTML = 'Signature'
+        const canvas = document.createElement('canvas')
+        canvas.classList.add('border', 'rounded-md', 'w-full')
+
+        container.append(label, canvas)
+       const refNode = createLinkForm.childNodes[9]
+        createLinkForm.insertBefore(container, refNode)
+        signaturePad = new SignaturePad(canvas);
+    }
+
+    const signatureInput = document.getElementById('signatureInput')
+    signaturePad.addEventListener('endStroke', () => {
+        signatureInput.value = signaturePad.toDataURL()
+    })
+
+    createLinkForm.addEventListener('submit', (ev) => {
+        if (cLink.HasLocationRestriction && !isUserWithinLocation) {
+            ev.preventDefault()
+        }
+    })
 
     const showPosition = (position) => {
-        const long = position.coords.latitude.toFixed(6)
-        const lat = position.coords.longitude.toFixed(6)
+        const lat = position.coords.latitude.toFixed(6)
+        const long = position.coords.longitude.toFixed(6)
+       const distance = distanceBtwTwoPoints(lat, cLink.Latitude, long, cLink.Longitude)
+       if (distance > 1) {
+           createLinkForm.innerHTML = 'You are not in right location!'
+       }
+       isUserWithinLocation = true;
     }
 
     const showError = (error) => {
+        createLinkForm.innerHTML = 'You are not in right location!'
         switch(error.code) {
             case error.PERMISSION_DENIED:
                 showToast({
@@ -134,13 +152,15 @@
         }
     }
 
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(showPosition, showError)
-    } else {
-        showToast({
-            'type': 'error',
-            'message': "Your browser does not have geolocation enabled"
-        })
+    if (cLink.HasLocationRestriction) {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(showPosition, showError)
+        } else {
+            showToast({
+                'type': 'error',
+                'message': "Your browser does not have geolocation enabled"
+            })
+        }
     }
 </script>
 </body>

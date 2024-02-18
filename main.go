@@ -97,6 +97,7 @@ func main() {
 	protected.HandleFunc("/attendance", controllers.CreateNewLink).Methods("POST")
 	protected.HandleFunc("/attendance/{id}", controllers.RenderAttendance).Methods("GET")
 	protected.HandleFunc("/link/{id}", controller.RenderLinkForm).Methods("GET")
+	protected.HandleFunc("/link/{id}", controller.CreateNewRecord).Methods("POST")
 
 	compressed := handlers.CompressHandler(router)
 	loggedRouter := handlers.LoggingHandler(os.Stdout, compressed)

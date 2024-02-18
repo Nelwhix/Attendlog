@@ -153,3 +153,7 @@ func (c *Controller) RenderLinkForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (c *Controller) CreateNewRecord(w http.ResponseWriter, r *http.Request) {
+
+}
