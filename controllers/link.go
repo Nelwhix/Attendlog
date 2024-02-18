@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/Nelwhix/Attendlog/database"
 	"github.com/Nelwhix/Attendlog/models"
@@ -85,10 +86,16 @@ func CreateNewLink(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirectUrl, http.StatusFound)
 }
 
-func RenderAttendance(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) RenderAttendance(w http.ResponseWriter, r *http.Request) {
 	pathParams := mux.Vars(r)
 	link := fmt.Sprintf("%v/link/%v", os.Getenv("APP_URL"), pathParams["id"])
 	cUser := r.Context().Value("currentUser").(models.User)
+	var cLink models.Link
+	c.db.First(&cLink, "id = ?", pathParams["id"])
+	if cLink.Title == "" {
+		http.Error(w, "Link no exist", http.StatusNotFound)
+		return
+	}
 
 	parsedTemplate, err := template.ParseFiles("templates/attendance.tmpl")
 	if err != nil {
@@ -100,6 +107,7 @@ func RenderAttendance(w http.ResponseWriter, r *http.Request) {
 		csrf.TemplateTag: csrf.TemplateField(r),
 		"UserName":       cUser.UserName,
 		"AttendanceLink": link,
+		"Link":           cLink,
 	})
 	if err != nil {
 		log.Printf("Error occured while executing the template or writing its output : %v", err)
@@ -143,17 +151,30 @@ func (c *Controller) RenderLinkForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = parsedTemplate.Execute(w, map[string]interface{}{
-		csrf.TemplateTag: csrf.TemplateField(r),
-		"UserName":       cUser.UserName,
-		"Link":           cLink,
-	})
-	if err != nil {
-		log.Printf("Error occured while executing the template or writing its output : %v", err)
-		return
+	flashMessage, ok := r.Context().Value("flashMessage").(map[string]string)
+	if !ok {
+		err = parsedTemplate.Execute(w, map[string]interface{}{
+			csrf.TemplateTag: csrf.TemplateField(r),
+			"UserName":       cUser.UserName,
+			"Link":           cLink,
+		})
+
+		if err != nil {
+			log.Printf("Error occured while executing the template or writing its output : %v", err)
+			return
+		}
+	} else {
+		jsonData, _ := json.Marshal(flashMessage)
+		err = parsedTemplate.Execute(w, map[string]interface{}{
+			csrf.TemplateTag: csrf.TemplateField(r),
+			"UserName":       cUser.UserName,
+			"Link":           cLink,
+			"flashMessage":   string(jsonData),
+		})
+
+		if err != nil {
+			log.Printf("Error occured while executing the template or writing its output : %v", err)
+			return
+		}
 	}
-}
-
-func (c *Controller) CreateNewRecord(w http.ResponseWriter, r *http.Request) {
-
 }

@@ -5,7 +5,7 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Success - Attendlog </title>
+    <title>{{.Link.Title}} - Attendlog </title>
     <link rel="stylesheet" href="/static/css/index.css">
 </head>
 <body class="font-inter">
@@ -68,6 +68,14 @@
             .catch(() => {
                 showToast({type: 'error', message: 'could not copy link'})
         })
+    }
+
+    const evtSource = new EventSource("/link/" + {{ .Link.ID }} + "/records")
+    evtSource.onmessage = (event) => {
+        console.log(event)
+    }
+    evtSource.onerror = (error) => {
+        console.log(error)
     }
 </script>
 </body>

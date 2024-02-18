@@ -95,9 +95,10 @@ func main() {
 	protected.Use(authMiddleware)
 	protected.HandleFunc("/dashboard", controller.RenderDashboard).Methods("GET")
 	protected.HandleFunc("/attendance", controllers.CreateNewLink).Methods("POST")
-	protected.HandleFunc("/attendance/{id}", controllers.RenderAttendance).Methods("GET")
+	protected.HandleFunc("/attendance/{id}", controller.RenderAttendance).Methods("GET")
 	protected.HandleFunc("/link/{id}", controller.RenderLinkForm).Methods("GET")
 	protected.HandleFunc("/link/{id}", controller.CreateNewRecord).Methods("POST")
+	router.HandleFunc("/link/{id}/records", controller.GetRecords).Methods("GET")
 
 	compressed := handlers.CompressHandler(router)
 	loggedRouter := handlers.LoggingHandler(os.Stdout, compressed)
